@@ -28,8 +28,8 @@ const getAdopt = async (req, res) => {
   try {
     const { state = null, city = null } = req.query;
     let query = {};
-    if (state) query.location.state = state;
-    if (city) query.location.city = city;
+    if (state) query = { location: { state } };
+    if (city) query = { location: { ...query.location, city } };
 
     console.log(query);
 
@@ -55,7 +55,9 @@ const getAdopt = async (req, res) => {
         },
       },
       {
-        $match: {},
+        $match: {
+          ...query,
+        },
       },
     ]);
 
