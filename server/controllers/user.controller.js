@@ -8,10 +8,10 @@ const raiseAdopt = async (req, res) => {
     data.username = username;
 
     const checkAdoptions = await adoptModel.find({ username }).countDocuments();
-    if (checkAdoptions > 5)
+    if (checkAdoptions >= 3)
       return res
         .status(400)
-        .json({ error: "Only Five Active Adoptions Allowed" });
+        .json({ error: "Only Three Active Adoptions Allowed" });
 
     const response = await adoptModel.create(data);
 
@@ -26,7 +26,14 @@ const raiseAdopt = async (req, res) => {
 // GET -> api/user/adopt
 const getAdopt = async (req, res) => {
   try {
-    const response = await adoptModel.aggregate([
+    const { state = null, city = null } = req.query;
+    let query = {};
+    if (state) query.location.state = state;
+    if (city) query.location.city = city;
+
+    console.log(query);
+
+    let response = await adoptModel.aggregate([
       {
         $lookup: {
           from: "user_infos",
@@ -35,7 +42,30 @@ const getAdopt = async (req, res) => {
           as: "userInfo",
         },
       },
+      {
+        $unwind: "$userInfo",
+      },
+      {
+        $project: {
+          "userInfo._id": 0,
+          "userInfo.__v": 0,
+          "userInfo.updatedAt": 0,
+          __v: 0,
+          updatedAt: 0,
+        },
+      },
+      {
+        $match: {},
+      },
     ]);
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        likes: item.likes.length,
+        misleading: item.misleading.length,
+      };
+    });
 
     return res.status(200).json(response);
   } catch (err) {

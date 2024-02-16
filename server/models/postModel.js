@@ -1,19 +1,5 @@
 const mongoose = require("mongoose");
 
-const likeSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-});
-
-const misLeadSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-});
-
 const postSchema = new mongoose.Schema(
   {
     username: {
@@ -28,8 +14,11 @@ const postSchema = new mongoose.Schema(
     location: { type: String, required: true },
     description: { type: String },
 
-    likes: { type: [likeSchema] },
-    misleading: { type: [misLeadSchema] },
+    // Add usernames
+    likes: { type: [String] },
+
+    // Add usernames
+    misleading: { type: [String] },
   },
   { timestamps: true }
 );

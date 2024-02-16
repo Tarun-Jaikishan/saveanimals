@@ -23,6 +23,12 @@ const adoptSchema = new mongoose.Schema(
     },
 
     isVaccinated: { type: Boolean, default: false },
+
+    // Add usernames
+    likes: { type: [String] },
+
+    // Add usernames
+    misleading: { type: [String] },
   },
   { timestamps: true }
 );
