@@ -1,4 +1,8 @@
 const { adoptModel } = require("../models/adoptModel");
+const { lostModel } = require("../models/lostModel");
+const { postModel } = require("../models/postModel");
+
+// Adoption
 
 // POST -> api/user/adopt
 const raiseAdopt = async (req, res) => {
@@ -23,15 +27,86 @@ const raiseAdopt = async (req, res) => {
   }
 };
 
+// DELETE -> api/user/adopt?id=value
+const removeAdopt = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.query;
+
+    const response = await adoptModel.deleteOne({ _id: id, username });
+    if (response.deletedCount === 1)
+      return res.status(200).json({ message: "Adoption Removed Successfully" });
+    else return res.status(400).json({ error: "Invalid Adoption ID" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // GET -> api/user/adopt
+const getUserAdopts = async (req, res) => {
+  try {
+    const { username } = req.user;
+    let response = await adoptModel
+      .find({ username }, { updatedAt: 0, __v: 0 })
+      .lean();
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        misleading: item.misleading.length,
+      };
+    });
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// PUT -> api/user/adopt
+const adoptMislead = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.body;
+
+    const check = await adoptModel.findOne({ _id: id }).lean();
+
+    if (!check) return res.status(400).json({ error: "Invalid Adoption ID" });
+
+    if (username === check.username)
+      return res
+        .status(200)
+        .json({ message: "Mislead Cannot Be Set By Yourself" });
+
+    if (check.misleading.includes(username))
+      return res.status(200).json({ message: "Updated Misleading Adoption" });
+
+    await adoptModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          misleading: [...check.misleading, username],
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Updated Misleading Adoption" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Open For All Users
+// GET -> api/user/adopt-all?state=value&city=value
 const getAdopt = async (req, res) => {
   try {
     const { state = null, city = null } = req.query;
     let query = {};
-    if (state) query = { location: { state } };
-    if (city) query = { location: { ...query.location, city } };
-
-    console.log(query);
+    if (state) query = { "location.state": state };
+    if (city) query = { ...query, "location.city": city };
 
     let response = await adoptModel.aggregate([
       {
@@ -64,7 +139,6 @@ const getAdopt = async (req, res) => {
     response = response.map((item, i) => {
       return {
         ...item,
-        likes: item.likes.length,
         misleading: item.misleading.length,
       };
     });
@@ -76,4 +150,207 @@ const getAdopt = async (req, res) => {
   }
 };
 
-module.exports = { raiseAdopt, getAdopt };
+// Lost Animals
+
+// GET -> api/user/lost
+const raiseLost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    let data = req.body;
+    data.username = username;
+
+    const checkAdoptions = await lostModel.find({ username }).countDocuments();
+    if (checkAdoptions >= 3)
+      return res
+        .status(400)
+        .json({ error: "Only Three Active Lost Requests Allowed" });
+
+    const response = await lostModel.create(data);
+
+    if (response)
+      return res
+        .status(200)
+        .json({ message: "Lost Request Raised Successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// DELETE -> api/user/lost?id=value
+const removeLost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.query;
+
+    const response = await lostModel.deleteOne({ _id: id, username });
+    if (response.deletedCount === 1)
+      return res
+        .status(200)
+        .json({ message: "Lost Request Removed Successfully" });
+    else return res.status(400).json({ error: "Invalid Lost Request ID" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// GET -> api/user/lost
+const getUserLost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    let response = await lostModel
+      .find({ username }, { updatedAt: 0, __v: 0 })
+      .lean();
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        misleading: item.misleading.length,
+      };
+    });
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// PUT -> api/user/lost
+const lostMislead = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.body;
+
+    const check = await lostModel.findOne({ _id: id }).lean();
+
+    if (!check)
+      return res.status(400).json({ error: "Invalid Lost Request ID" });
+
+    if (username === check.username)
+      return res
+        .status(400)
+        .json({ message: "Mislead Cannot Be Set By Yourself" });
+
+    if (check.misleading.includes(username))
+      return res
+        .status(200)
+        .json({ message: "Updated Misleading Lost Request" });
+
+    await lostModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          misleading: [...check.misleading, username],
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Updated Misleading Adoption" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Open For All Users
+// GET -> api/user/lost-all?state=value&city=value
+const getLost = async (req, res) => {
+  try {
+    const { state = null, city = null } = req.query;
+    let query = {};
+    if (state) query = { "location.state": state };
+    if (city) query = { ...query, "location.city": city };
+
+    let response = await lostModel.aggregate([
+      {
+        $lookup: {
+          from: "user_infos",
+          localField: "username",
+          foreignField: "username",
+          as: "userInfo",
+        },
+      },
+      {
+        $unwind: "$userInfo",
+      },
+      {
+        $project: {
+          "userInfo._id": 0,
+          "userInfo.__v": 0,
+          "userInfo.updatedAt": 0,
+          __v: 0,
+          updatedAt: 0,
+        },
+      },
+      {
+        $match: {
+          ...query,
+        },
+      },
+    ]);
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        misleading: item.misleading.length,
+      };
+    });
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Posts
+
+// POST -> api/user/posts
+const raisePost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    let data = req.body;
+    data.username = username;
+
+    const response = await postModel.create(data);
+
+    if (response)
+      return res.status(200).json({ message: "Post Created Successfully" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// DELETE -> api/user/posts?id=value
+const removePost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.query;
+
+    const response = await postModel.deleteOne({ _id: id, username });
+    if (response.deletedCount === 1)
+      return res.status(200).json({ message: "Post Removed Successfully" });
+    else return res.status(400).json({ error: "Invalid Post ID" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = {
+  raiseAdopt,
+  getAdopt,
+  removeAdopt,
+  adoptMislead,
+  getUserAdopts,
+  raiseLost,
+  removeLost,
+  lostMislead,
+  getUserLost,
+  getLost,
+  raisePost,
+  removePost,
+};

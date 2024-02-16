@@ -7,12 +7,21 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
 
-    name: { type: String },
     animal: { type: String, required: true }, // Dog
     breed: { type: String }, // Lab
-    photo_link: { type: String },
-    location: { type: String, required: true },
+    photo_link: { type: String, required: true },
+    location_mark: { type: String, required: true }, //lattitude-longitude ex:22.45-22.55
+    location: {
+      city: { type: String, required: true },
+      state: { type: String, required: true },
+    },
     description: { type: String },
+    type: {
+      type: String,
+      required: true,
+      enum: ["contribute", "need_help"],
+      message: "Type must be either contribute or need_help",
+    },
 
     // Add usernames
     likes: { type: [String] },

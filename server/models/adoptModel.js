@@ -15,7 +15,7 @@ const adoptSchema = new mongoose.Schema(
     },
     animal: { type: String, required: true }, // Dog
     breed: { type: String }, // Lab
-    photo_link: { type: String },
+    photo_link: { type: String, required: true },
     description: { type: String, required: true },
     location: {
       city: { type: String, required: true },
@@ -23,9 +23,6 @@ const adoptSchema = new mongoose.Schema(
     },
 
     isVaccinated: { type: Boolean, default: false },
-
-    // Add usernames
-    likes: { type: [String] },
 
     // Add usernames
     misleading: { type: [String] },

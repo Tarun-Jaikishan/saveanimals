@@ -15,9 +15,12 @@ const lostSchema = new mongoose.Schema(
       city: { type: String, required: true },
       state: { type: String, required: true },
     },
-    description: { type: String },
+    description: { type: String, required: true },
     otherDetails: { type: String },
     hasTag: { type: Boolean, default: false },
+
+    // Add usernames
+    misleading: { type: [String] },
   },
   { timestamps: true }
 );
