@@ -37,7 +37,7 @@ export default function page() {
   return (
     <div className="flex justify-center items-center mt-32">
       <div className="px-10 py-5 shadow bg-white rounded">
-        <h3 className="text-center text-2xl font-semibold">Login</h3>
+        <h3 className="text-center text-3xl font-semibold">Login</h3>
 
         <form className="mt-5" onSubmit={handleSubmit}>
           <div>
@@ -68,7 +68,9 @@ export default function page() {
             customStyle={"mt-3 w-full"}
           />
           <div className="mt-2 flex justify-end">
-            <button className="text-sm">Forgot Password?</button>
+            <button type="button" className="text-sm">
+              Forgot Password?
+            </button>
           </div>
         </form>
       </div>
