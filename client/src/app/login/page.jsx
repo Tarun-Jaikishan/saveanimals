@@ -7,9 +7,12 @@ import TextField from "@/components/common/TextField";
 import Button from "@/components/common/Button";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { setOffLoading, setOnLoading } from "../(features)/loadingSlice";
 
 export default function page() {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [form, setForm] = useState({
     username: "",
@@ -22,6 +25,7 @@ export default function page() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    dispatch(setOnLoading());
     try {
       const response = await axios.post("http://localhost:3000/api/auth", form);
       if (response.status === 200) {
@@ -32,6 +36,7 @@ export default function page() {
       console.log(err);
       toast.error(err.response.data.error);
     }
+    dispatch(setOffLoading());
   }
 
   return (

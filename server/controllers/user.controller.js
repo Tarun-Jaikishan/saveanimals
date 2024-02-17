@@ -232,7 +232,7 @@ const lostMislead = async (req, res) => {
     if (username === check.username)
       return res
         .status(400)
-        .json({ message: "Mislead Cannot Be Set By Yourself" });
+        .json({ error: "Mislead Cannot Be Set By Yourself" });
 
     if (check.misleading.includes(username))
       return res
