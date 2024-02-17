@@ -14,6 +14,11 @@ const {
   adoptMislead,
   lostMislead,
   raisePost,
+  removePost,
+  getUserPost,
+  getPost,
+  postMislead,
+  postLike,
 } = require("../controllers/user.controller");
 
 // ROUTE -> api/user
@@ -40,8 +45,11 @@ router
 router.route("/lost-all").get(getLost);
 
 // Posts
-router.route("/posts").post(raisePost).get(getUserLost).delete(removeLost);
+router.route("/posts").post(raisePost).get(getUserPost).delete(removePost);
 
-router.route("/posts-all").get(getLost);
+router.put("/posts/mislead", postMislead);
+router.put("/posts/like", postLike);
+
+router.route("/posts-all").get(getPost);
 
 module.exports = router;

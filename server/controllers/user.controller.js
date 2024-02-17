@@ -1,6 +1,7 @@
 const { adoptModel } = require("../models/adoptModel");
 const { lostModel } = require("../models/lostModel");
 const { postModel } = require("../models/postModel");
+const { userModel } = require("../models/userModel");
 
 // Adoption
 
@@ -340,6 +341,171 @@ const removePost = async (req, res) => {
   }
 };
 
+// GET -> api/user/posts
+const getUserPost = async (req, res) => {
+  try {
+    const { username } = req.user;
+    let response = await postModel
+      .find({ username }, { updatedAt: 0, __v: 0 })
+      .lean();
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        likes: item.likes.length,
+        misleading: item.misleading.length,
+      };
+    });
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// PUT -> api/user/posts/mislead
+const postMislead = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.body;
+
+    const check = await postModel.findOne({ _id: id }).lean();
+
+    if (!check) return res.status(400).json({ error: "Invalid Post ID" });
+
+    if (username === check.username)
+      return res
+        .status(400)
+        .json({ message: "Mislead Cannot Be Set By Yourself" });
+
+    if (check.likes.includes(username))
+      return res
+        .status(400)
+        .json({ message: "Post Already Been Marked As Liked" });
+
+    if (check.misleading.includes(username))
+      return res.status(200).json({ message: "Updated Misleading Post" });
+
+    await postModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          misleading: [...check.misleading, username],
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Updated Misleading Post" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// PUT -> api/user/posts/like
+const postLike = async (req, res) => {
+  try {
+    const { username } = req.user;
+    const { id } = req.body;
+
+    const check = await postModel.findOne({ _id: id }).lean();
+
+    if (!check) return res.status(400).json({ error: "Invalid Post ID" });
+
+    if (username === check.username)
+      return res
+        .status(400)
+        .json({ message: "Like Cannot Be Set By Yourself" });
+
+    if (check.misleading.includes(username))
+      return res
+        .status(400)
+        .json({ message: "Post Already Been Marked As Misleading" });
+
+    if (check.likes.includes(username))
+      return res.status(200).json({ message: "Post Liked" });
+
+    await postModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          likes: [...check.likes, username],
+        },
+      }
+    );
+
+    // Appreciation
+    const userInfo = await userModel.findOne({ username: check.username });
+
+    await userModel.updateOne(
+      { username: check.username },
+      {
+        $set: {
+          appreciations: userInfo.appreciations + 1,
+        },
+      }
+    );
+
+    return res.status(200).json({ message: "Post Liked" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Open For All Users
+// GET -> api/user/posts-all?state=value&city=value
+const getPost = async (req, res) => {
+  try {
+    const { state = null, city = null } = req.query;
+    let query = {};
+    if (state) query = { "location.state": state };
+    if (city) query = { ...query, "location.city": city };
+
+    let response = await postModel.aggregate([
+      {
+        $lookup: {
+          from: "user_infos",
+          localField: "username",
+          foreignField: "username",
+          as: "userInfo",
+        },
+      },
+      {
+        $unwind: "$userInfo",
+      },
+      {
+        $project: {
+          "userInfo._id": 0,
+          "userInfo.__v": 0,
+          "userInfo.updatedAt": 0,
+          __v: 0,
+          updatedAt: 0,
+        },
+      },
+      {
+        $match: {
+          ...query,
+        },
+      },
+    ]);
+
+    response = response.map((item, i) => {
+      return {
+        ...item,
+        likes: item.likes.length,
+        misleading: item.misleading.length,
+      };
+    });
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   raiseAdopt,
   getAdopt,
@@ -353,4 +519,8 @@ module.exports = {
   getLost,
   raisePost,
   removePost,
+  getUserPost,
+  postMislead,
+  postLike,
+  getPost,
 };

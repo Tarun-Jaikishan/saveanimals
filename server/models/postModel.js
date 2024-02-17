@@ -23,6 +23,8 @@ const postSchema = new mongoose.Schema(
       message: "Type must be either contribute or need_help",
     },
 
+    postRelation: { type: String }, // For Contribute Type If Someone Contributed For Need Help
+
     // Add usernames
     likes: { type: [String] },
 
