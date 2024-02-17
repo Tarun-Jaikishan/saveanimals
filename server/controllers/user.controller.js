@@ -78,8 +78,8 @@ const adoptMislead = async (req, res) => {
 
     if (username === check.username)
       return res
-        .status(200)
-        .json({ message: "Mislead Cannot Be Set By Yourself" });
+        .status(400)
+        .json({ error: "Mislead Cannot Be Set By Yourself" });
 
     if (check.misleading.includes(username))
       return res.status(200).json({ message: "Updated Misleading Adoption" });

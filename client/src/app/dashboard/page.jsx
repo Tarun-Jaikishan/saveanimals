@@ -17,28 +17,29 @@ export default function page() {
 
   return (
     <div className="mx-5 px-10 py-3 bg-white rounded">
-      <div className="flex gap-10 ">
+      <div className="flex gap-10 justify-center ">
         <button
           onClick={() => router.push("/dashboard/lost")}
-          className="flex gap-2 items-center p-5 bg-red-600 text-white rounded-lg hover:bg-red-800 duration-300 font-semibold text-2xl flex-1 justify-center"
+          className="flex flex-col gap-2 items-center p-20  bg-red-600 text-white rounded-lg hover:bg-red-800 duration-300 font-semibold text-4xl justify-center"
         >
-          <FaPaw /> Lost Pets
+          <FaPaw />
+          <span>Lost Pets</span>
         </button>
         <button
           onClick={() => router.push("/dashboard/adoption")}
-          className="flex gap-2 items-center p-5 bg-green-600 text-white rounded-lg hover:bg-green-800 duration-300 font-semibold text-2xl flex-1 justify-center"
+          className="flex flex-col gap-2 items-center p-20  bg-green-600 text-white rounded-lg hover:bg-green-800 duration-300 font-semibold text-4xl justify-center"
         >
           <FaHandHoldingHeart /> Adoptions
         </button>
         <button
           onClick={() => router.push("/dashboard/posts")}
-          className="flex gap-2 items-center p-5 bg-orange-600 text-white rounded-lg hover:bg-orange-800 duration-300 font-semibold text-2xl flex-1 justify-center"
+          className="flex flex-col gap-2 items-center p-20  bg-orange-600 text-white rounded-lg hover:bg-orange-800 duration-300 font-semibold text-4xl justify-center"
         >
           <BsFillPostcardHeartFill /> Create Posts
         </button>
       </div>
 
-      <div className="mt-5">s</div>
+      {/* <div className="mt-5">s</div> */}
     </div>
   );
 }

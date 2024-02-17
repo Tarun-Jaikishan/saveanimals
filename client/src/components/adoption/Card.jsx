@@ -4,20 +4,20 @@ import image from "@/assets/dog.jpg";
 import Image from "next/image";
 
 import { IoIosWarning } from "react-icons/io";
-import { GiBlackBelt } from "react-icons/gi";
 
 import DialogBox from "../common/DialogBox";
 import { useState } from "react";
 import { api_url } from "@/app/common";
 import { toast } from "react-toastify";
 import axiosConfig from "@/config/axios.config";
+import { BiSolidInjection } from "react-icons/bi";
 
 export default function Card({ item, setData }) {
   const [open, setOpen] = useState(false);
 
   async function setMislead(id) {
     try {
-      const response = await axiosConfig.put(`${api_url}/user/lost`, { id });
+      const response = await axiosConfig.put(`${api_url}/user/adopt`, { id });
       if (response.status === 200) toast.success(response.data.message);
     } catch (err) {
       toast.error(err.response.data.error);
@@ -27,7 +27,7 @@ export default function Card({ item, setData }) {
 
   async function deleteLost(id) {
     try {
-      const response = await axiosConfig.delete(`${api_url}/user/lost`, {
+      const response = await axiosConfig.delete(`${api_url}/user/adopt`, {
         params: { id },
       });
       if (response.status === 200) {
@@ -57,12 +57,19 @@ export default function Card({ item, setData }) {
             {item.location.city}, {item.location.state}
           </h3>
           <br />
+          <h3 className="text-sm">
+            {item.age.split("-")[0]} Years {item.age.split("-")[1]} Months{" "}
+            {item.age.split("-")[2]} Days
+          </h3>
+          <br />
           <p className="text-sm">{item.description}</p>
-          <p className="mt-2 text-sm">{item.otherDetails}</p>
 
-          {item.hasTag && (
-            <div className="mt-2 flex justify-center items-center">
-              <GiBlackBelt className="text-4xl" />
+          {item.isVaccinated && (
+            <div
+              className="mt-2 flex justify-center items-center"
+              title="Vaccinated"
+            >
+              <BiSolidInjection className="text-2xl" />
             </div>
           )}
         </div>
@@ -72,7 +79,7 @@ export default function Card({ item, setData }) {
               onClick={() => setMislead(item._id)}
               className="flex justify-between text-sm"
             >
-              <div className="flex gap-2 items-center " title="Has A Collar">
+              <div className="flex gap-2 items-center ">
                 <IoIosWarning /> Misleading
               </div>
             </button>
